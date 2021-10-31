@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { MapService } from '../../services/map.service';
 
 import * as d3 from 'd3';
+import { currentDate, backwardIcon, forwardIcon, tagsIcon } from '../../core/inputs';
 
 
 @Component({
@@ -16,6 +17,11 @@ import * as d3 from 'd3';
 export class TimeLegendComponent implements OnInit, OnDestroy {
   @Input() currentActivityIdSelected: any;
   @Input() isGeodataCanBeDisplayed: any;
+
+  // icons
+  backwardIcon = backwardIcon;
+  forwardIcon = forwardIcon;
+  tagIcon = tagsIcon;
 
   mapContainer: any;
   sliderDate!: Date;
@@ -32,7 +38,7 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
   sliderNodesSize = 5;
 
   endDate: Date = currentDate;
-  currentYear = currentYear;
+  currentYear = '2020';
   startDate!: Date;
   selectedDatePosition = 0;  // TODO check type
   maxDatePosition: number = this.width - this.margin.left - this.margin.right;
@@ -41,7 +47,7 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
   timer!: any;
   currentCountNodes = 0;
 
-  svgTripIdPrefix = svgTripIdPrefix;
+  svgTripIdPrefix = "svgTripIdPrefix";
 
   pullGeoDataSubscription!: Subscription;
   mapContainerSubscription!: Subscription;
@@ -371,16 +377,6 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
       .enter()
       .append('circle')
       .attr('id', (d: any) => 'location_' + d.properties.id)
-      .attr('class', (d: any) => {
-        // in order to match with legend status
-        const relatedLegendElement = d3.selectAll('#' + this.legendActivities + ' circle.' + d.properties.type);
-        if (relatedLegendElement.size() > 0) {
-          if (relatedLegendElement.classed('disabled')) {
-            return 'invisible activityPoint ' + d.properties.type;
-          }
-        }
-        return 'activityPoint ' + d.properties.type;
-      })
       .attr('r', this.sliderNodesSize)
       .attr('cursor', 'pointer')
       .attr('cx', (d: any) => this.dateRange(this.parseTime(d.properties.start_date)))

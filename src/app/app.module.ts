@@ -14,7 +14,7 @@ import { BackgroundComponent } from './background/map/background.component';
 
 import { MapService } from './services/map.service';
 import { MapViewComponent } from './map/map-view/map-view.component';
-// import { TimeLegendComponent } from './map/time-legend/time-legend.component';
+import { TimeLegendComponent } from './map/time-legend/time-legend.component';
 
 
 registerLocaleData(localeFr);
@@ -24,7 +24,7 @@ registerLocaleData(localeFr);
     AppComponent,
     BackgroundComponent,
     MapViewComponent,
-    // TimeLegendComponent
+    TimeLegendComponent
   ],
   imports: [
     HttpClientModule,
