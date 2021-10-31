@@ -40,26 +40,23 @@ export class MapService {
     this.mapContainer.next(mapContainer);
   }
 
-  // pullActivitiesGeoData(): void {
+  pullGeoData(): void {
+    // HERE ADD CURRENT DATE ARG LINKED TO THE timeline !!!!
+    this.http.get<any>(this.apiUrlData).subscribe({
+      complete: () => {
+      },
+      error: error => {
+      // TODO improve error message, but API need improvments
+      this.ErrorapiUrlDataApiFound.next(error.error.message);
+      },
+      next: response => {
+        this.GeoData.next(response);
+      },
+    });
+  }
 
-  //   this.http.get<any>(this.apiUrlActivitiesGeoData).subscribe({
-  //     complete: () => {
-  //     },
-  //     error: error => {
-  //     // TODO improve error message, but API need improvments
-  //     this.ErrorapiUrlActivitiesGeoDataApiFound.next(error.error.message);
-  //     },
-  //     next: response => {
-  //       this.activitiesGeoData.next(response);
-  //     },
-  //   });
-  // }
+  pullGeoDataToMap(dataToMap: any[]): void {
+    this.GeoDataToMap.next(dataToMap);
+  }
 
-  // pullActivitiesGeoDataToMap(dataToMap: any[]): void {
-  //   this.activitiesGeoDataToMap.next(dataToMap);
-  // }
-
-  // pullTripsGeoDataToMap(dataToMap: any[]): void {
-  //   this.tripsGeoDataToMap.next(dataToMap);
-  // }
 }
