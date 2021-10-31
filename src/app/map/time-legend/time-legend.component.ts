@@ -15,8 +15,7 @@ import { currentDate, backwardIcon, forwardIcon, tagsIcon } from '../../core/inp
   encapsulation: ViewEncapsulation.None
 })
 export class TimeLegendComponent implements OnInit, OnDestroy {
-  @Input() currentActivityIdSelected: any;
-  @Input() isGeodataCanBeDisplayed: any;
+  isGeodataCanBeDisplayed = true;
 
   // icons
   backwardIcon = backwardIcon;
@@ -24,12 +23,12 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
   tagIcon = tagsIcon;
 
   mapContainer: any;
-  sliderDate!: Date;
+  sliderDate!: Date | null;
 
-  geoActivitiesData!: any;
+  geoData!: any;
   geoTripsData!: any;
 
-  sliderBarId = '#' + 'sliderBarId';
+  sliderBarId = '#slider-bar';
 
   margin: any = { top: 10, right: 15, bottom: 0, left: 15 };
   width = 600;
@@ -37,9 +36,9 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
   fontSize = '14px';
   sliderNodesSize = 5;
 
-  endDate: Date = currentDate;
-  currentYear = '2020';
-  startDate!: Date;
+  endDate: Date | null = currentDate;
+  startDate: Date | null = currentDate;
+  currentDate!: string;
   selectedDatePosition = 0;  // TODO check type
   maxDatePosition: number = this.width - this.margin.left - this.margin.right;
   dateRange!: any;
@@ -47,9 +46,11 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
   timer!: any;
   currentCountNodes = 0;
 
-  svgTripIdPrefix = "svgTripIdPrefix";
+  stepValue = 36000;
+  timerStep = 5;
 
   pullGeoDataSubscription!: Subscription;
+  pullRangeDateDataSubscription!: Subscription;
   mapContainerSubscription!: Subscription;
 
   constructor(
@@ -64,31 +65,37 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
 
     this.pullGeoDataSubscription = this.mapService.GeoData.subscribe(
       (element) => {
-
-
-        this.geoActivitiesData = element.activities_geojson;
-        const startDate: Date = new Date(element.start_date);
-        startDate.setMonth(startDate.getMonth() - 1); // start date must be smaller than the first activity start_date
-        this.startDate = startDate;
-        // all the data is loaded but we are going to filter it to map its features regarding datetime
-        // defined on the timeline
-        this.buildTimeline(String(this.currentYear));
-
-        // if a circle is preselected
-        if ( this.currentActivityIdSelected !== undefined ) {
-          const currentElement: any = d3.select('#slider-bar #location_' + this.currentActivityIdSelected);
-          this.sliderEventCircleBounceRepeat(currentElement)
+        this.geoData = element.data_geojson;
+        console.log(this.currentDate)
+        // this.mapService.pullGeoData(this.currentDate);
+        if (this.geoData.features !== null) {
+          this.mapService.pullGeoDataToMap(this.geoData.features);
         }
 
       }
     );
+
+
+    this.pullRangeDateDataSubscription = this.mapService.rangeDateData.subscribe(
+      (element) => {
+        this.startDate = this.parseTime(element.start_date);
+        this.endDate = this.parseTime(element.end_date);
+        this.currentDate = element.start_date
+        this.buildTimeline(String(this.currentDate));
+
+      }
+    );
+
+
+
   }
 
   ngOnInit(): void {
 
     if ( this.isGeodataCanBeDisplayed ) {
       this.mapService.getMapContainer();
-      this.mapService.pullGeoData();
+      this.mapService.pullRangeDateData();
+      // this.mapService.pullGeoData(this.currentDate);
     }
 
   }
@@ -96,15 +103,16 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.pullGeoDataSubscription.unsubscribe();
+    this.pullRangeDateDataSubscription.unsubscribe();
     this.mapContainerSubscription.unsubscribe();
   }
 
   parseTime(time: string): Date | null {
-    return d3.timeParse('%Y-%m-%d')(time);
+    return d3.timeParse('%Y-%m-%d %H:%M:%S')(time);
   }
 
   formatDate(time: Date): string {
-    return d3.timeFormat('%b %Y')(time);
+    return d3.timeFormat('%Y-%m-%d %H:%M:%S')(time);
   }
 
   formatDateToYearString(time: Date): string {
@@ -126,13 +134,13 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
 
     } else if (button.html() === 'Continue') {
       this.movingCursor = true;
-      this.timer = setInterval(this.step.bind(this), 100);
+      this.timer = setInterval(this.step.bind(this), this.timerStep);
       button.html('Pause');
 
     } else {
       // start run
       this.movingCursor = true;
-      this.timer = setInterval(this.step.bind(this), 100);
+      this.timer = setInterval(this.step.bind(this), this.timerStep);
       button.html('Pause');
     }
   }
@@ -161,48 +169,13 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
   }
 
 
-  updateTrips(h: Date): void {
-    this.geoTripsData.forEach((item: any) => {
-      const startDate: string = item.start_date;
-      const endDate: string = item.end_date;
-      const tripStartDate: Date | null = this.parseTime(startDate);
-      const tripEndDate: Date | null = this.parseTime(endDate);
-
-      const svgTrip = d3.selectAll('[id^=' + this.svgTripIdPrefix + item.name + ']');
-      if (tripStartDate !== null && tripEndDate !== null) {
-
-        if (h >= tripStartDate && h < tripEndDate) {
-          svgTrip.style('visibility', 'visible');
-        } else {
-          svgTrip.style('visibility', 'hidden');
-        }
-      }
-    });
-  }
-
   update(h: any): void {
-    // always update the status of the trips regarding slider changes
-    this.updateTrips(h);
 
-    // filter data set and redraw plot
-    const newData = this.geoActivitiesData.features.filter((d: any) => {
-      const selectedDate = this.parseTime(d.properties.start_date);
-      // return parseDate(d.properties.end_date) >= h && parseDate(d.properties.start_date) < h;
-      // filter by current slider date and slider start date
-      if (selectedDate !== null) {
-        return selectedDate >= this.startDate && selectedDate < h;
-      }
-      return false;
-    });
 
     // call api only if last count is different from the current count feature
-    if (newData.length !== this.currentCountNodes) {
-      this.mapService.pullGeoDataToMap(newData);
-      this.displaySliderNodes(newData);
-    }
+    // this.mapService.pullGeoDataToMap(this.geoData.features);
+    this.mapService.pullGeoData(this.formatDate(h));
 
-    // update count feature, to optimize api calls
-    this.currentCountNodes = newData.length;
 
     // update position and text of label according to slider scale
 
@@ -214,7 +187,7 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
 
   step(): void {
     this.update(this.dateRange.invert(this.selectedDatePosition));
-    this.selectedDatePosition = this.selectedDatePosition + (this.maxDatePosition / 151);
+    this.selectedDatePosition = this.selectedDatePosition + (this.maxDatePosition / this.stepValue);
     if (this.selectedDatePosition > this.maxDatePosition) {
       this.movingCursor = false;
       this.selectedDatePosition = 0;
@@ -225,10 +198,12 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
   }
 
   _initDateRange(): void {
-    this.dateRange = d3.scaleTime()
+    if (this.startDate !== null && this.endDate !== null) {
+      this.dateRange = d3.scaleTime()
       .domain([this.startDate, this.endDate])
       .range([0, this.maxDatePosition])
       .clamp(true);
+    }
   }
 
   buildTimeline(date: string): void {
@@ -277,13 +252,16 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
             .style('pointer-events', 'all');
 
           // reset button play if animation is done and play button == continue
-          if (this.dateRange.invert(this.selectedDatePosition).toTimeString() === this.endDate.toTimeString()
-            || this.dateRange.invert(this.selectedDatePosition).toTimeString() === this.startDate.toTimeString()
-          ) {
-            playButton.text('Play');
-          } else {
-            playButton.text('Continue');
+          if (this.startDate !== null && this.endDate !== null) {
+            if (this.dateRange.invert(this.selectedDatePosition).toTimeString() === this.endDate.toTimeString()
+              || this.dateRange.invert(this.selectedDatePosition).toTimeString() === this.startDate.toTimeString()
+            ) {
+              playButton.text('Play');
+            } else {
+              playButton.text('Continue');
+            }
           }
+
 
         })
       )
@@ -319,36 +297,6 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
     // node trace events from geojson source
     const traceEvents = slider.insert('g', '.track-overlay')
       .attr('class', 'trace-events');
-    traceEvents.selectAll('circle').data(this.geoActivitiesData.features).enter()
-      .append('circle')
-      .attr('class', (d: any) => {
-        const selectedDate = this.parseTime(d.properties.start_date);
-        if (selectedDate !== null) {
-          if (selectedDate >= this.startDate) {
-            return 'trace';
-          }
-        }
-        return ''; // ?????
-      })
-      .attr('r', (d: any) => {
-        const selectedDate = this.parseTime(d.properties.start_date);
-        if (selectedDate !== null) {
-          if (selectedDate >= this.startDate) {
-            return 4;
-          }
-        }
-        return 2;
-      })
-      .attr('cx', (d: any) => {
-        const startDate = this.parseTime(d.properties.start_date);
-        if (startDate !== null) {
-          if (startDate >= this.startDate) {
-            return this.dateRange(startDate);
-          }
-        } else {
-          return ''; // ?????
-        }
-      });
 
     const trace = slider.insert('line', '.track-overlay')
       .attr('id', 'trace')
@@ -366,87 +314,6 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
     this.sliderDate = this.endDate
     this.update(this.endDate);
 
-  }
-
-  displaySliderNodes(geoData: any): void {
-    const sliderNodes = d3.select('#slider-bar .events')
-      .selectAll('circle')
-      .data(geoData, (d: any) => d.properties.id);
-
-    sliderNodes
-      .enter()
-      .append('circle')
-      .attr('id', (d: any) => 'location_' + d.properties.id)
-      .attr('r', this.sliderNodesSize)
-      .attr('cursor', 'pointer')
-      .attr('cx', (d: any) => this.dateRange(this.parseTime(d.properties.start_date)))
-      .on('mouseover', (e: any, d: any) => {
-        if (d.properties.id !== this.currentActivityIdSelected) {
-          this.BounceMapActivityCircle(d, 4);
-        }
-
-        this.interactionWithEventNode(e.currentTarget, d);
-        // to link with popup
-        d3.select('#popup-feature-' + d.properties.id)
-          .style('visibility', 'visible')
-          .style('right', '1%');
-      })
-      .on('mouseout', (e: any, d: any) => {
-
-        if (d.properties.id !== this.currentActivityIdSelected) {
-          this.BounceMapActivityCircle(d, 2);
-        }
-
-        this.interactionWithEventNode(e.currentTarget, d);
-        // link with popup
-        d3.select('#popup-feature-' + d.properties.id)
-        .style('visibility', 'hidden')
-        .style('top', 'unset')
-          .style('left', 'unset');
-
-      });
-    sliderNodes.exit().remove();
-  }
-
-  interactionWithEventNode(svgObject: any, data: any): void {
-
-    const currentElement: any = d3.select(svgObject);
-    currentElement.classed('selected', !currentElement.classed('selected')); // toggle class
-
-    const legendElement: any = d3.select('#theme-legend .' + data.properties.type);
-    legendElement.classed('selected', !legendElement.classed('selected'));
-
-    const currentActivityCircle = d3.select('#svgActivitiesLayer #node_location_' + data.properties.id + ' circle');
-    currentActivityCircle.classed('selected', !currentActivityCircle.classed('selected')); // toggle class
-
-  }
-
-  BounceMapActivityCircle(data: any, scaleR: number): void {
-    const currentActivityCircle = d3.select('#svgActivitiesLayer #node_location_' + data.properties.id + ' circle');
-    this.circleBouncer(currentActivityCircle, scaleR);
-  }
-
-  circleBouncer(object: any, rScale: number): void {
-    object
-      .transition()
-      .duration(1000)
-      .ease(d3.easeElastic)
-      .attr('r', (d: any) => d.properties.months * rScale);
-  }
-
-  sliderEventCircleBounceRepeat(d3Object: any): void {
-    d3Object
-      .transition()
-      .duration(1000)
-      .ease(d3.easeElastic)
-      .attr('r', this.sliderNodesSize * 2)
-      // .style("opacity", 1)
-      .transition()
-      .duration(500)
-      .ease(d3.easeLinear)
-      .attr('r', this.sliderNodesSize)
-      // .style("opacity", 0)
-      .on('end', this.sliderEventCircleBounceRepeat.bind(this, d3Object));
   }
 
 }
