@@ -37,8 +37,8 @@ export class MapViewComponent implements OnInit, OnDestroy {
 
   mapContainer!: any;
   zoomInitDone!: boolean;
-  maxZoomValue = 9;
-  ZoomActivityValue = 12;
+  maxZoomValue = 11;
+  dataBoundingBox!: number[];
 
   helpPopup = 'Voici une cartographie spatio-temporelles de mes expériences';
 
@@ -54,6 +54,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
   mapContainerSubscription!: Subscription;
   pullGeoDataToMapSubscription!: Subscription;
   pullTripsGeoDataToMapSubscription!: Subscription;
+  pullBoundingBoxDataSubscription!: Subscription;
 
   constructor(
     private mapService: MapService,
@@ -101,6 +102,17 @@ export class MapViewComponent implements OnInit, OnDestroy {
       }
     );
 
+    this.pullBoundingBoxDataSubscription = this.mapService.rangeDateData.subscribe(
+      (element) => {
+        this.dataBoundingBox = element.data_bounds;
+        this.zoomFromDataBounds(this.dataBoundingBox);
+      }
+    );
+
+
+
+
+
   }
 
   ngOnInit(): void {
@@ -127,7 +139,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
 
   zoomOnData(): void {
     if (this.geoFeaturesData !== undefined) {
-      this.zoomFromDataBounds(this.geoFeaturesData);
+      this.zoomFromDataBounds(this.dataBoundingBox);
     }
   }
 
@@ -135,10 +147,12 @@ export class MapViewComponent implements OnInit, OnDestroy {
     this.isLegendDisplayed = !this.isLegendDisplayed;
   }
 
-  zoomFromDataBounds(geojsonData: any): void {
+  zoomFromDataBounds(bounds: number[]): void {
+    const ne = { lng: bounds[2], lat: bounds[3] };
+    const sw = { lng: bounds[0], lat: bounds[1] };
 
     this.mapContainer.fitBounds(
-      L.geoJSON(geojsonData).getBounds(),
+      L.latLngBounds(L.latLng(sw), L.latLng(ne)),
       {
         maxZoom: this.maxZoomValue
       }
