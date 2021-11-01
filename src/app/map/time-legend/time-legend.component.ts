@@ -236,6 +236,9 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
           playButton.text('Pause');
           playButton.dispatch('click')
 
+          this.selectedDatePosition = e.x;
+          this.update(this.dateRange.invert(this.selectedDatePosition));
+
           // disable timeline node selection
           d3.select('#slider-bar .events')
             .selectAll('circle')
@@ -260,8 +263,7 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
               playButton.text('Continue');
             }
           }
-          this.selectedDatePosition = e.x;
-          this.update(this.dateRange.invert(this.selectedDatePosition));
+
 
         })
       )
