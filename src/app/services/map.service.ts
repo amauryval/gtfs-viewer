@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { Subject } from 'rxjs';
 
-import { apiUrl } from '../core/inputs';
+import { apiUrl, apiStatusUrl } from '../core/inputs';
 
 
 
@@ -18,6 +18,8 @@ export class MapService {
   ErrorapiUrlDataApiFound: Subject<string> = new Subject<string>();
   GeoData: Subject<any> = new Subject<any>();
   rangeDateData: Subject<any> = new Subject<any>();
+  stopEvent: Subject<any> = new Subject<any>();
+  startEvent: Subject<any> = new Subject<any>();
 
   GeoDataToMap: Subject<any[]> = new Subject<any[]>();
 
@@ -73,5 +75,35 @@ export class MapService {
   pullGeoDataToMap(dataToMap: any[]): void {
     this.GeoDataToMap.next(dataToMap);
   }
+
+  pullStopEvent(): void {
+    this.http.get<any>(this.apiUrlData + 'stop').subscribe({
+      complete: () => {
+      },
+      error: error => {
+      // TODO improve error message, but API need improvments
+      this.ErrorapiUrlDataApiFound.next(error.error.message);
+      },
+      next: response => {
+        this.stopEvent.next(response);
+      },
+    });
+  }
+
+
+  pullStartEvent(): void {
+    this.http.get<any>(this.apiUrlData + 'start').subscribe({
+      complete: () => {
+      },
+      error: error => {
+      // TODO improve error message, but API need improvments
+      this.ErrorapiUrlDataApiFound.next(error.error.message);
+      },
+      next: response => {
+        this.startEvent.next(response);
+      },
+    });
+  }
+
 
 }

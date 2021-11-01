@@ -46,8 +46,8 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
   timer!: any;
   currentCountNodes = 0;
 
-  stepValue = 1500; // 36000 ok
-  timerStep = 50;
+  stepValue = 6000; // 36000 ok
+  timerStep = 36;
 
   pullGeoDataSubscription!: Subscription;
   pullRangeDateDataSubscription!: Subscription;
@@ -127,21 +127,42 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
   startTimeLine(): void {
     const button = d3.select('#play-button');
     if (button.html() === 'Pause') {
+      this.mapService.pullStopEvent()
+      this.pullGeoDataSubscription.unsubscribe();
       this.movingCursor = false;
       clearInterval(this.timer);
       // var timer = 0;
       button.text('Continue');
+
 
     } else if (button.html() === 'Continue') {
       this.movingCursor = true;
       this.timer = setInterval(this.step.bind(this), this.timerStep);
       button.html('Pause');
 
+      this.mapService.pullStartEvent()
+      // REFACTOR
+      this.pullGeoDataSubscription = this.mapService.GeoData.subscribe(
+        (element) => {
+          this.geoData = element.data_geojson;
+          console.log(this.currentDate)
+          // this.mapService.pullGeoData(this.currentDate);
+          if (this.geoData.features !== null) {
+            this.mapService.pullGeoDataToMap(this.geoData.features);
+          }
+        }
+      );
+
     } else {
       // start run
       this.movingCursor = true;
       this.timer = setInterval(this.step.bind(this), this.timerStep);
       button.html('Pause');
+      this.mapService.pullStartEvent()
+
+
+
+
     }
   }
 
