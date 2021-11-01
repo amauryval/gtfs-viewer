@@ -65,6 +65,7 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
 
     this.pullGeoDataSubscription = this.mapService.GeoData.subscribe(
       (element) => {
+        // this.mapService.pullStartEvent()
         this.geoData = element.data_geojson;
         console.log(this.currentDate)
         // this.mapService.pullGeoData(this.currentDate);
@@ -127,41 +128,21 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
   startTimeLine(): void {
     const button = d3.select('#play-button');
     if (button.html() === 'Pause') {
-      this.mapService.pullStopEvent()
-      this.pullGeoDataSubscription.unsubscribe();
       this.movingCursor = false;
       clearInterval(this.timer);
       // var timer = 0;
       button.text('Continue');
-
 
     } else if (button.html() === 'Continue') {
       this.movingCursor = true;
       this.timer = setInterval(this.step.bind(this), this.timerStep);
       button.html('Pause');
 
-      this.mapService.pullStartEvent()
-      // REFACTOR
-      this.pullGeoDataSubscription = this.mapService.GeoData.subscribe(
-        (element) => {
-          this.geoData = element.data_geojson;
-          console.log(this.currentDate)
-          // this.mapService.pullGeoData(this.currentDate);
-          if (this.geoData.features !== null) {
-            this.mapService.pullGeoDataToMap(this.geoData.features);
-          }
-        }
-      );
-
     } else {
       // start run
       this.movingCursor = true;
       this.timer = setInterval(this.step.bind(this), this.timerStep);
       button.html('Pause');
-      this.mapService.pullStartEvent()
-
-
-
 
     }
   }
@@ -196,6 +177,7 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
     // call api only if last count is different from the current count feature
     // this.mapService.pullGeoDataToMap(this.geoData.features);
     this.mapService.pullGeoData(this.formatDate(h));
+
 
 
     // update position and text of label according to slider scale
@@ -255,15 +237,12 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
           playButton.text('Pause');
           playButton.dispatch('click')
 
-          this.selectedDatePosition = e.x;
-          this.update(this.dateRange.invert(this.selectedDatePosition));
-
           // disable timeline node selection
           d3.select('#slider-bar .events')
             .selectAll('circle')
             .style('pointer-events', 'none');
         })
-        .on('end', () => {
+        .on('end', (e: any) => {
           // at the drag end we enable the drap map
           this.mapContainer.dragging.enable();
 
@@ -282,7 +261,8 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
               playButton.text('Continue');
             }
           }
-
+          this.selectedDatePosition = e.x;
+          this.update(this.dateRange.invert(this.selectedDatePosition));
 
         })
       )

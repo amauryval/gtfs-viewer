@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import {timeout} from 'rxjs/operators';
 
 import { Subject } from 'rxjs';
 
@@ -92,7 +93,9 @@ export class MapService {
 
 
   pullStartEvent(): void {
-    this.http.get<any>(this.apiUrlData + 'start').subscribe({
+    this.http.get<any>(this.apiUrlData + 'start').pipe(
+      timeout(2000)
+   ).subscribe({
       complete: () => {
       },
       error: error => {
