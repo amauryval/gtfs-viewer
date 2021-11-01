@@ -46,8 +46,8 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
   timer!: any;
   currentCountNodes = 0;
 
-  stepValue = 6000; // 36000 ok
-  timerStep = 36;
+  stepValue = 4000; // 4000 ok with parq
+  timerStep = 25; // 100 ok with parq
 
   pullGeoDataSubscription!: Subscription;
   pullRangeDateDataSubscription!: Subscription;
@@ -69,8 +69,8 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
         this.geoData = element.data_geojson;
         console.log(this.currentDate)
         // this.mapService.pullGeoData(this.currentDate);
-        if (this.geoData.features !== null) {
-          this.mapService.pullGeoDataToMap(this.geoData.features);
+        if (this.geoData !== null) {
+          this.mapService.pullGeoDataToMap(this.geoData);
         }
 
       }
@@ -175,7 +175,6 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
 
 
     // call api only if last count is different from the current count feature
-    // this.mapService.pullGeoDataToMap(this.geoData.features);
     this.mapService.pullGeoData(this.formatDate(h));
 
 

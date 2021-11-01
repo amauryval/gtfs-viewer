@@ -163,13 +163,13 @@ export class MapViewComponent implements OnInit, OnDestroy {
 
     const group: any = d3.select('#activities-container');
     const jobs = group.selectAll('.activityPoint')
-      .data(data, (d: any) => d.properties.stop_code); // need to defined an unique id to disordered draw, check doc...
+      .data(data, (d: any) => d.stop_code); // need to defined an unique id to disordered draw, check doc...
 
     jobs
       .enter()
       .append('a') // add hyper link and the svg circle
-      .attr('xlink:href', (d: any) => '#/resume#' + d.properties.id)
-      .attr('id', (d: any) => 'node_location_' + d.properties.id)
+      .attr('xlink:href', (d: any) => '#/resume#' + d.id)
+      .attr('id', (d: any) => 'node_location_' + d.id)
       .attr('cursor', 'pointer')
       .append('circle')
       .style('opacity', this.circleOpacity)
@@ -189,14 +189,14 @@ export class MapViewComponent implements OnInit, OnDestroy {
         //   return 'black'
         // }
 
-        if (d.properties.line_name_short == 'A') {
+        if (d.line_name_short == 'A') {
           return 'blue'
-        } else if (d.properties.line_name_short == 'B') {
+        } else if (d.line_name_short == 'B') {
           return 'teal'
         }
-        else if (d.properties.line_name_short == 'T1') {
+        else if (d.line_name_short == 'T1') {
           return 'red'
-        } else if (d.properties.line_name_short == 'T2') {
+        } else if (d.line_name_short == 'T2') {
           return 'orange'
         }
         else {
@@ -205,7 +205,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
       })
       .style('r', '5')
       .style('stroke-width', this.circleWidth)
-      .attr('class', (d: any) => d.properties.type)
       .on('mouseover', (e: any, d: any) => {})
       .on('mousemove', (e: any, d: any) => {})
       .on('mouseout', (e: any, d: any) => {
@@ -237,8 +236,8 @@ export class MapViewComponent implements OnInit, OnDestroy {
   }
 
   applyLatLngToLayer(d: any): any {
-    const y: number = d.geometry.coordinates[1];
-    const x: number = d.geometry.coordinates[0];
+    const y: number = d.y;
+    const x: number = d.x;
     return this.mapContainer.latLngToLayerPoint(new L.LatLng(y, x));
   }
 
