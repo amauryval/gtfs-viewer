@@ -175,11 +175,31 @@ export class MapViewComponent implements OnInit, OnDestroy {
       .style('opacity', this.circleOpacity)
       .style('stroke', this.circleStroke)
       .style('fill', function(d: any) {
-        if (d.properties.stop_type == 'metro') {
+        // if (d.properties.stop_type == 'metro' && d.properties.direction_id == "back") {
+        //   return 'blue'
+        // } else if (d.properties.stop_type == 'metro' && d.properties.direction_id == "forth") {
+        //   return 'teal'
+        // }
+        // else if (d.properties.stop_type == 'tramway' && d.properties.direction_id == "back") {
+        //   return 'red'
+        // } else if (d.properties.stop_type == 'tramway' && d.properties.direction_id == "forth") {
+        //   return 'orange'
+        // }
+        // else {
+        //   return 'black'
+        // }
+
+        if (d.properties.line_name_short == 'A') {
           return 'blue'
-        } else if (d.properties.stop_type == 'tramway') {
+        } else if (d.properties.line_name_short == 'B') {
+          return 'teal'
+        }
+        else if (d.properties.line_name_short == 'T1') {
           return 'red'
-        } else {
+        } else if (d.properties.line_name_short == 'T2') {
+          return 'orange'
+        }
+        else {
           return 'black'
         }
       })

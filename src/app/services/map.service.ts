@@ -42,7 +42,6 @@ export class MapService {
   }
 
   pullGeoData(current_date: string): void {
-    // HERE ADD CURRENT DATE ARG LINKED TO THE timeline !!!!
     this.http.get<any>(this.apiUrlData + 'nodes_by_date?current_date=' + current_date).subscribe({
       complete: () => {
       },

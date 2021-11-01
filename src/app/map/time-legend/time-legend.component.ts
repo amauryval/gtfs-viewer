@@ -46,8 +46,8 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
   timer!: any;
   currentCountNodes = 0;
 
-  stepValue = 36000;
-  timerStep = 5;
+  stepValue = 1500; // 36000 ok
+  timerStep = 50;
 
   pullGeoDataSubscription!: Subscription;
   pullRangeDateDataSubscription!: Subscription;
