@@ -4,7 +4,7 @@ import {timeout} from 'rxjs/operators';
 
 import { Subject } from 'rxjs';
 
-import { apiUrl, apiStatusUrl } from '../core/inputs';
+import { apiUrl } from '../core/inputs';
 
 
 
@@ -14,13 +14,12 @@ import { apiUrl, apiStatusUrl } from '../core/inputs';
 export class MapService {
 
   mapContainer: Subject<any> = new Subject<any>();
-
+  screenMapBound: Subject<any> = new Subject<any>();
+  
   private apiUrlData = apiUrl;
   ErrorapiUrlDataApiFound: Subject<string> = new Subject<string>();
   GeoData: Subject<any> = new Subject<any>();
   rangeDateData: Subject<any> = new Subject<any>();
-  stopEvent: Subject<any> = new Subject<any>();
-  startEvent: Subject<any> = new Subject<any>();
 
   GeoDataToMap: Subject<any[]> = new Subject<any[]>();
 
@@ -44,8 +43,12 @@ export class MapService {
     this.mapContainer.next(mapContainer);
   }
 
-  pullGeoData(current_date: string): void {
-    this.http.get<any>(this.apiUrlData + 'nodes_by_date?current_date=' + current_date).subscribe({
+  sendScreenMapBounds(screenMapBound: number[]): void {
+    this.screenMapBound.next(screenMapBound);
+  }
+
+  pullGeoData(current_date: string, bounds: number[]): void {
+    this.http.get<any>(this.apiUrlData + 'moving_nodes_by_date?current_date=' + current_date + "&bounds=" + bounds).subscribe({
       complete: () => {
       },
       error: error => {
@@ -75,37 +78,6 @@ export class MapService {
 
   pullGeoDataToMap(dataToMap: any[]): void {
     this.GeoDataToMap.next(dataToMap);
-  }
-
-  pullStopEvent(): void {
-    this.http.get<any>(this.apiUrlData + 'stop').subscribe({
-      complete: () => {
-      },
-      error: error => {
-      // TODO improve error message, but API need improvments
-      this.ErrorapiUrlDataApiFound.next(error.error.message);
-      },
-      next: response => {
-        this.stopEvent.next(response);
-      },
-    });
-  }
-
-
-  pullStartEvent(): void {
-    this.http.get<any>(this.apiUrlData + 'start').pipe(
-      timeout(2000)
-   ).subscribe({
-      complete: () => {
-      },
-      error: error => {
-      // TODO improve error message, but API need improvments
-      this.ErrorapiUrlDataApiFound.next(error.error.message);
-      },
-      next: response => {
-        this.startEvent.next(response);
-      },
-    });
   }
 
 
