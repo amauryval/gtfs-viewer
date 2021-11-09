@@ -25,6 +25,7 @@ export class BackgroundComponent implements OnInit {
   isBlurred!: boolean;
 
   map: any;
+  screenMapBounds!: number[];
 
   mapContainerCalledSubscription!: Subscription;
   mapServiceSubscription!: Subscription;
@@ -76,6 +77,12 @@ export class BackgroundComponent implements OnInit {
       zoomControl: false,
     }).addLayer(this.osmLayer);
 
+
+    this.map.on(
+      'moveend',
+      this.getMapScreenBounds.bind(this)
+    );
+
     // to add scale
     // L.control.scale(
     //   {
@@ -84,6 +91,17 @@ export class BackgroundComponent implements OnInit {
     //   }
     // ).addTo(this.map);
   }
+
+  getMapScreenBounds(): void {
+    console.log("baaam")
+    this.mapService.sendScreenMapBounds([
+      this.map.getBounds().getWest(),
+      this.map.getBounds().getSouth(),
+      this.map.getBounds().getEast(),
+      this.map.getBounds().getNorth()
+    ]);
+  }
+
 
   resetView(): void {
     this.map.setView(
