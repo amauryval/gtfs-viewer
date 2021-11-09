@@ -26,7 +26,7 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
   sliderDate!: Date | null;
 
   geoData!: any;
-  geoTripsData!: any;
+  screenMapBounds: number[] = [0, 0, 0, 0];
 
   sliderBarId = '#slider-bar';
 
@@ -47,9 +47,10 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
   currentCountNodes = 0;
 
   stepValue = 4000; // 4000 ok with parq
-  timerStep = 25; // 100 ok with parq
+  timerStep = 25; // 25 ok with parq
 
   pullGeoDataSubscription!: Subscription;
+  pullScreenMapBoundsSubscription!: Subscription;
   pullRangeDateDataSubscription!: Subscription;
   mapContainerSubscription!: Subscription;
 
@@ -73,6 +74,17 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
           this.mapService.pullGeoDataToMap(this.geoData);
         }
 
+      }
+    );
+
+    this.pullScreenMapBoundsSubscription = this.mapService.screenMapBound.subscribe(
+      (element) => {
+        // this.mapService.pullStartEvent()
+        this.screenMapBounds = element;
+        this.mapService.pullGeoData(
+          this.currentDate,
+          this.screenMapBounds
+        );
       }
     );
 
@@ -107,6 +119,7 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
     this.pullRangeDateDataSubscription.unsubscribe();
     this.mapContainerSubscription.unsubscribe();
   }
+
 
   parseTime(time: string): Date | null {
     return d3.timeParse('%Y-%m-%d %H:%M:%S')(time);
@@ -173,9 +186,13 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
 
   update(h: any): void {
 
+    this.currentDate = this.formatDate(h)
 
     // call api only if last count is different from the current count feature
-    this.mapService.pullGeoData(this.formatDate(h));
+    this.mapService.pullGeoData(
+      this.currentDate,
+      this.screenMapBounds
+    );
 
 
 
