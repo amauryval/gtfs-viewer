@@ -3,8 +3,7 @@ import { faExpand, faTags, faMapMarkerAlt, faStepBackward, faStepForward } from 
 
 import { apiBaseUrl } from './constants';
 
-export const apiUrl = apiBaseUrl + 'api/v1/gtfs/';
-export const apiStatusUrl = apiBaseUrl + 'api/v1/gtfs_status/';
+export const apiUrl = apiBaseUrl + 'api/v1/gtfs_builder/toulouse/';
 
 export const backwardIcon = faStepBackward;
 export const forwardIcon = faStepForward;

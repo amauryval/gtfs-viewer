@@ -37,10 +37,15 @@ export class MapViewComponent implements OnInit, OnDestroy {
 
   mapContainer!: any;
   zoomInitDone!: boolean;
-  maxZoomValue = 11;
+  maxZoomValue = 19;
   dataBoundingBox!: number[];
 
   helpPopup = 'Voici une cartographie spatio-temporelles de mes expériences';
+
+  canvas!: any;
+  context!: any;
+  pi2 = Math.PI * 2;
+  radius = 4;
 
   // check css code related to popup
   popupWidth = 330;
@@ -49,7 +54,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
   svgLayerId = 'svgLayer';
   circleOpacity = 0.7;
   circleStroke = 'ghostwhite';
-  circleWidth = '2.5px';
+  circleWidth = '1px';
 
   mapContainerSubscription!: Subscription;
   pullGeoDataToMapSubscription!: Subscription;
@@ -68,7 +73,9 @@ export class MapViewComponent implements OnInit, OnDestroy {
     this.mapContainerSubscription = this.mapService.mapContainer.subscribe(
       (element: any) => {
         this.mapContainer = element;
-        this.initActivitiesSvgLayer();
+
+        // this.initnodesSvgLayer();
+        this.initCircleCanvasLayer();
 
         // to add scale
         const scaleLeaflet: any = L.control.scale(
@@ -97,8 +104,10 @@ export class MapViewComponent implements OnInit, OnDestroy {
 
     this.pullGeoDataToMapSubscription = this.mapService.GeoDataToMap.subscribe(
       (geoFeaturesData: any[]) => {
+
         this.geoFeaturesData = geoFeaturesData;
-        this.activitiesMapping(geoFeaturesData);
+        this.circlesMapping(this.geoFeaturesData)
+        // this.svgNodesMapping(geoFeaturesData);
       }
     );
 
@@ -159,24 +168,74 @@ export class MapViewComponent implements OnInit, OnDestroy {
     );
   }
 
-  initActivitiesSvgLayer(): void {
+  initnodesSvgLayer(): void {
     const svgLayerContainer: any = L.svg().addTo(this.mapContainer);
     const svgLayerObject = d3.select(svgLayerContainer._container)
       .attr('id', this.svgLayerId)
       .attr('pointer-events', 'auto');
     svgLayerObject.select('g')
       .attr('class', 'leaflet-zoom-hide')
-      .attr('id', 'activities-container');
+      .attr('id', 'nodes-container');
 
   }
 
+  initCircleCanvasLayer(): void {
+    const canvas = new L.Canvas().addTo(this.mapContainer);
+    this.canvas = document.querySelector('canvas');
+    this.context = this.canvas.getContext('2d')
+    // this.context = this.canvas._ctx
+  }
 
-  activitiesMapping(data: any): void {
+  circlesMapping(data: any): void {
+    // https://stackoverflow.com/questions/2142535/how-to-clear-the-canvas-for-redrawing
+
+    // Store the current transformation matrix
+    this.context.save();
+    // Use the identity matrix while clearing the canvas
+    this.context.setTransform(1, 0, 0, 1, 0, 0);
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    // Restore the transform
+    this.context.restore();
+
+
+
+    let i!: number
+    for (i = 0; i < data.length; i++) {
+      this.context.beginPath();
+
+      const coords: any = this.mapContainer.latLngToLayerPoint(new L.LatLng(data[i].y, data[i].x))
+
+      this.context.moveTo( coords.x + this.radius, coords.y ); // This was the line you were looking for
+      this.context.arc(
+        coords.x,
+        coords.y,
+        this.radius, 0, this.pi2
+      );
+
+      if (data[i].route_type == 'metro') {
+        this.context.fillStyle = 'blue';
+      } else if (data[i].route_type == 'tramway') {
+        this.context.fillStyle = 'orange';
+      } else if (data[i].route_type == 'train') {
+        this.context.fillStyle = 'red';
+      } else {
+        this.context.fillStyle = 'black';
+      }
+      this.context.fill();
+      this.context.closePath();
+
+    }
+
+
+  }
+
+  svgNodesMapping(data: any): void {
+
     // remove existing nodes
-    d3.selectAll('#activities-container a').remove()
+    d3.selectAll('#nodes-container a').remove()
 
-    const group: any = d3.select('#activities-container');
-    const jobs = group.selectAll('.activityPoint')
+    const group: any = d3.select('#nodes-container');
+    const jobs = group.selectAll('.node')
       .data(data, (d: any) => d.stop_code); // need to defined an unique id to disordered draw, check doc...
 
     jobs
@@ -184,7 +243,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
       .append('a') // add hyper link and the svg circle
       .attr('xlink:href', (d: any) => '#/resume#' + d.id)
       .attr('id', (d: any) => 'node_location_' + d.id)
-      .attr('cursor', 'pointer')
       .append('circle')
       .style('opacity', this.circleOpacity)
       .style('stroke', this.circleStroke)
@@ -203,21 +261,21 @@ export class MapViewComponent implements OnInit, OnDestroy {
         //   return 'black'
         // }
 
-        if (d.line_name_short == 'A') {
+        if (d.route_short_name == 'A') {
           return 'blue'
-        } else if (d.line_name_short == 'B') {
+        } else if (d.route_short_name == 'B') {
           return 'teal'
         }
-        else if (d.line_name_short == 'T1') {
+        else if (d.route_short_name == 'T1') {
           return 'red'
-        } else if (d.line_name_short == 'T2') {
+        } else if (d.route_short_name == 'T2') {
           return 'orange'
         }
         else {
-          return 'black'
+          return 'red'
         }
       })
-      .style('r', '5')
+      .style('r', '3')
       .style('stroke-width', this.circleWidth)
       .on('mouseover', (e: any, d: any) => {})
       .on('mousemove', (e: any, d: any) => {})
@@ -225,8 +283,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
 
       });
 
-    d3.selectAll('.activityPoint circle').transition()
-      .attr('r', '5');
 
     jobs
       .exit()

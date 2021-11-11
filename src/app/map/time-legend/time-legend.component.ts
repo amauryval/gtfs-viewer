@@ -39,6 +39,7 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
   endDate: Date | null = currentDate;
   startDate: Date | null = currentDate;
   currentDate!: string;
+
   selectedDatePosition = 0;  // TODO check type
   maxDatePosition: number = this.width - this.margin.left - this.margin.right;
   dateRange!: any;
@@ -68,9 +69,7 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
       (element) => {
         // this.mapService.pullStartEvent()
         this.geoData = element.data_geojson;
-        console.log(this.currentDate)
-        // this.mapService.pullGeoData(this.currentDate);
-        if (this.geoData !== null) {
+        if (this.geoData !== null && this.currentDate !== null) {
           this.mapService.pullGeoDataToMap(this.geoData);
         }
 
@@ -81,10 +80,12 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
       (element) => {
         // this.mapService.pullStartEvent()
         this.screenMapBounds = element;
-        this.mapService.pullGeoData(
-          this.currentDate,
-          this.screenMapBounds
-        );
+        if (this.currentDate !== null && this.currentDate !== undefined) {
+          this.mapService.pullGeoData(
+            this.currentDate,
+            this.screenMapBounds
+          );
+        }
       }
     );
 
@@ -108,7 +109,6 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
     if ( this.isGeodataCanBeDisplayed ) {
       this.mapService.getMapContainer();
       this.mapService.pullRangeDateData();
-      // this.mapService.pullGeoData(this.currentDate);
     }
 
   }
@@ -131,6 +131,10 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
 
   formatDateToYearString(time: Date): string {
     return d3.timeFormat('%Y')(time);
+  }
+
+  formatDateToTimeString(time: Date): string {
+    return parseInt(d3.timeFormat('%H')(time)) + ' h.';
   }
 
   formatDateToString(time: Date): string {
@@ -189,19 +193,23 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
     this.currentDate = this.formatDate(h)
 
     // call api only if last count is different from the current count feature
-    this.mapService.pullGeoData(
-      this.currentDate,
-      this.screenMapBounds
-    );
+    if (this.currentDate !== null) {
+      console.log("cccc", this.currentDate)
+      this.mapService.pullGeoData(
+        this.currentDate,
+        this.screenMapBounds
+      );
 
 
 
-    // update position and text of label according to slider scale
 
-    d3.select('#trace').attr('x2', this.dateRange(h)); // trace
-    d3.select('#handle').attr('cx', this.dateRange(h)); // handle
-    this.sliderDate = h
-    // d3.select('#slider-value').text(this.formatDate(h));
+     // update position and text of label according to slider scale
+
+      d3.select('#trace').attr('x2', this.dateRange(h)); // trace
+      d3.select('#handle').attr('cx', this.dateRange(h)); // handle
+      this.sliderDate = h
+      // d3.select('#slider-value').text(this.formatDate(h));
+    }
   }
 
   step(): void {
@@ -297,7 +305,7 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
       .attr('y', 0)
       .style('font-size', this.fontSize)
       .attr('text-anchor', 'middle')
-      .text((d: any) => this.formatDateToYearString(d));
+      .text((d: any) => this.formatDateToTimeString(d));
 
     slider.insert('g', '.track-overlay')
       .attr('class', 'ticks-line')
