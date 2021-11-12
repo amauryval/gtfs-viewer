@@ -15,7 +15,7 @@ export class MapService {
 
   mapContainer: Subject<any> = new Subject<any>();
   screenMapBound: Subject<any> = new Subject<any>();
-  
+
   private apiUrlData = apiUrl;
   ErrorapiUrlDataApiFound: Subject<string> = new Subject<string>();
   GeoData: Subject<any> = new Subject<any>();
@@ -47,8 +47,8 @@ export class MapService {
     this.screenMapBound.next(screenMapBound);
   }
 
-  pullGeoData(current_date: string, bounds: number[]): void {
-    this.http.get<any>(this.apiUrlData + 'moving_nodes_by_date?current_date=' + current_date + "&bounds=" + bounds).subscribe({
+  pullGeoData(currentData: string, current_date: string, bounds: number[]): void {
+    this.http.get<any>(this.apiUrlData + currentData + '/moving_nodes_by_date?current_date=' + current_date + "&bounds=" + bounds).subscribe({
       complete: () => {
       },
       error: error => {
@@ -61,9 +61,9 @@ export class MapService {
     });
   }
 
-  pullRangeDateData(): void {
+  pullRangeDateData(currentData: string): void {
     // HERE ADD CURRENT DATE ARG LINKED TO THE timeline !!!!
-    this.http.get<any>(this.apiUrlData + 'range_dates').subscribe({
+    this.http.get<any>(this.apiUrlData + currentData + '/range_dates').subscribe({
       complete: () => {
       },
       error: error => {

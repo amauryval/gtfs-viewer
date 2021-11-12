@@ -26,6 +26,8 @@ export class MapViewComponent implements OnInit, OnDestroy {
   tagIcon = tagsIcon;
   centerIcon = centerIcon;
 
+  available_data = ["ter", "toulouse"];
+  currentData = this.available_data[0];
 
   currentDate!: number;
 
@@ -39,8 +41,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
   zoomInitDone!: boolean;
   maxZoomValue = 19;
   dataBoundingBox!: number[];
-
-  helpPopup = 'Voici une cartographie spatio-temporelles de mes expériences';
 
   canvas!: any;
   context!: any;
@@ -145,6 +145,11 @@ export class MapViewComponent implements OnInit, OnDestroy {
     this.mapService.resetMapView()
   }
 
+  updateTimeline(data: string): void {
+    this.currentData = data
+    this.mapService.pullRangeDateData(this.currentData);
+  }
+
 
   zoomOnData(): void {
     if (this.geoFeaturesData !== undefined) {
@@ -181,7 +186,8 @@ export class MapViewComponent implements OnInit, OnDestroy {
 
   initCircleCanvasLayer(): void {
     const canvas = new L.Canvas().addTo(this.mapContainer);
-    this.canvas = document.querySelector('canvas');
+    d3.select('canvas').attr('id', 'stop_nodes')
+    this.canvas = document.querySelector('#stop_nodes');
     this.context = this.canvas.getContext('2d')
     // this.context = this.canvas._ctx
   }

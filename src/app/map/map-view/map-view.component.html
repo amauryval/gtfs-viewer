@@ -38,15 +38,25 @@
 
       <div class="row justify-content-center">
 
-        <!--
-          <div class="col-lg-5" *ngIf="isLegendDisplayed">
-          <app-theme-legend
-          ></app-theme-legend>
+        <div class="col-lg-5">
+
+
+          <div id="area-selector" class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              {{ currentData }}
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <a class="dropdown-item" *ngFor="let data of available_data" (click)="updateTimeline(data)">{{ data }}</a>
+            </div>
+          </div>
+
+
         </div>
-        -->
 
         <div class="col-lg-7">
-          <app-time-legend></app-time-legend>
+          <app-time-legend
+            [currentData]="currentData"
+          ></app-time-legend>
         </div>
 
 

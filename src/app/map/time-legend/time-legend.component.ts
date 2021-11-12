@@ -15,6 +15,8 @@ import { currentDate, backwardIcon, forwardIcon, tagsIcon } from '../../core/inp
   encapsulation: ViewEncapsulation.None
 })
 export class TimeLegendComponent implements OnInit, OnDestroy {
+  @Input() currentData: any;
+
   isGeodataCanBeDisplayed = true;
 
   // icons
@@ -82,6 +84,7 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
         this.screenMapBounds = element;
         if (this.currentDate !== null && this.currentDate !== undefined) {
           this.mapService.pullGeoData(
+            this.currentData,
             this.currentDate,
             this.screenMapBounds
           );
@@ -108,7 +111,8 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
 
     if ( this.isGeodataCanBeDisplayed ) {
       this.mapService.getMapContainer();
-      this.mapService.pullRangeDateData();
+      this.updateTimeline();
+      // this.mapService.pullRangeDateData(this.currentData);
     }
 
   }
@@ -118,6 +122,10 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
     this.pullGeoDataSubscription.unsubscribe();
     this.pullRangeDateDataSubscription.unsubscribe();
     this.mapContainerSubscription.unsubscribe();
+  }
+
+  updateTimeline(): void {
+    this.mapService.pullRangeDateData(this.currentData);
   }
 
 
@@ -196,6 +204,7 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
     if (this.currentDate !== null) {
       console.log("cccc", this.currentDate)
       this.mapService.pullGeoData(
+        this.currentData,
         this.currentDate,
         this.screenMapBounds
       );
@@ -234,6 +243,8 @@ export class TimeLegendComponent implements OnInit, OnDestroy {
   }
 
   buildTimeline(date: string): void {
+    // clean existing slide bar
+    d3.selectAll(".slider-bar").remove()
 
     const svg = d3.select(this.sliderBarId);
 
