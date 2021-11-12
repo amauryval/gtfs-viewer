@@ -19,7 +19,7 @@ export class BackgroundComponent implements OnInit {
   private zoomValue = 8;
   private osmLayer: any = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png', {
     maxZoom: 13,
-    minZoom: 8
+    minZoom: 6
   });
 
   isBlurred!: boolean;
@@ -75,6 +75,7 @@ export class BackgroundComponent implements OnInit {
       center: this.InitialViewCoords,
       zoom: this.zoomValue,
       zoomControl: false,
+      renderer: L.canvas()
     }).addLayer(this.osmLayer);
 
 
