@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "gtfs-viewer-front": {
+    "gtfs-viewer": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:application": {
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/gtfs-viewer-front",
+            "outputPath": "dist/gtfs-viewer",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -72,18 +72,18 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "gtfs-viewer-front:build"
+            "browserTarget": "gtfs-viewer:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "gtfs-viewer-front:build:production"
+              "browserTarget": "gtfs-viewer:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "gtfs-viewer-front:build"
+            "browserTarget": "gtfs-viewer:build"
           }
         },
         "test": {
@@ -120,11 +120,11 @@
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
             "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "gtfs-viewer-front:serve"
+            "devServerTarget": "gtfs-viewer:serve"
           },
           "configurations": {
             "production": {
-              "devServerTarget": "gtfs-viewer-front:serve:production"
+              "devServerTarget": "gtfs-viewer:serve:production"
             }
           }
         }
@@ -136,5 +136,5 @@
       "styleext": "scss"
     }
   },
-  "defaultProject": "gtfs-viewer-front"
+  "defaultProject": "gtfs-viewer"
 }
