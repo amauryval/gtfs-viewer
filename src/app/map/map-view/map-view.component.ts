@@ -44,8 +44,11 @@ export class MapViewComponent implements OnInit, OnDestroy {
 
   canvas!: any;
   context!: any;
+  tooltipCanvas!: any;
+  tooltipContext!: any;
   pi2 = Math.PI * 2;
   radius = 4;
+  popups: any[] = [];
 
   // check css code related to popup
   popupWidth = 330;
@@ -106,7 +109,8 @@ export class MapViewComponent implements OnInit, OnDestroy {
       (geoFeaturesData: any[]) => {
 
         this.geoFeaturesData = geoFeaturesData;
-        this.circlesMapping(this.geoFeaturesData)
+        this.circlesMapping(this.geoFeaturesData);
+
         // this.svgNodesMapping(geoFeaturesData);
       }
     );
@@ -182,19 +186,27 @@ export class MapViewComponent implements OnInit, OnDestroy {
       .attr('class', 'leaflet-zoom-hide')
       .attr('id', 'nodes-container');
 
+
   }
 
   initCircleCanvasLayer(): void {
+    // const tooltipsCanvas = new L.Canvas().addTo(this.mapContainer);
+    // d3.select('canvas').attr('id', 'tooltips')
     const canvas = new L.Canvas().addTo(this.mapContainer);
-    d3.select('canvas').attr('id', 'stop_nodes')
+    d3.select('canvas:not(#tooltips)').attr('id', 'stop_nodes')
     this.canvas = document.querySelector('#stop_nodes');
     this.context = this.canvas.getContext('2d')
-    // this.context = this.canvas._ctx
+
+
+    // this.tooltipCanvas = document.querySelector('#tooltips');
+    // this.tooltipContext = this.tooltipCanvas.getContext('2d')
+
   }
 
   circlesMapping(data: any): void {
     // https://stackoverflow.com/questions/2142535/how-to-clear-the-canvas-for-redrawing
 
+    // IN ORDER TO CLEAN THE CANVAS
     // Store the current transformation matrix
     this.context.save();
     // Use the identity matrix while clearing the canvas
@@ -203,10 +215,12 @@ export class MapViewComponent implements OnInit, OnDestroy {
     // Restore the transform
     this.context.restore();
 
-
+    this.popups = [];
 
     let i!: number
     for (i = 0; i < data.length; i++) {
+
+
       this.context.beginPath();
 
       const coords: any = this.mapContainer.latLngToLayerPoint(new L.LatLng(data[i].y, data[i].x))
@@ -218,21 +232,65 @@ export class MapViewComponent implements OnInit, OnDestroy {
         this.radius, 0, this.pi2
       );
 
-      if (data[i].route_type == 'metro') {
+      if (data[i].route_type == '1') {
         this.context.fillStyle = 'blue';
-      } else if (data[i].route_type == 'tramway') {
-        this.context.fillStyle = 'orange';
-      } else if (data[i].route_type == 'train') {
+      } else if (data[i].route_type == '0') {
         this.context.fillStyle = 'red';
+      } else if (data[i].route_type == '2') {
+        this.context.fillStyle = 'brown';
       } else {
         this.context.fillStyle = 'black';
       }
       this.context.fill();
       this.context.closePath();
 
+      this.popups.push({
+        x: coords.x,
+        y: coords.y,
+        r: 4,
+        rXr: 16,
+        route_type: data[i].route_type,
+        tip: data[i]['route_long_name'],
+        tooltipRadius2: 100
+      });
+
     }
+    this.initPopups()
 
+  }
 
+  initPopups(): void {
+    d3.select('#stop_nodes').on('mousemove', null)
+
+    d3.select('#stop_nodes')
+      .on('mousemove', (e: any, d: any) => {
+
+        let mouseX = parseInt(e.x);
+        let mouseY = parseInt(e.y);
+
+        let node_found = [];
+        for (var i = 0; i < this.popups.length; i++) {
+          const pop = this.popups[i];
+          let dx = mouseX - pop.x;
+          let dy = mouseY - pop.y;
+          if (dx * dx + dy * dy < pop.tooltipRadius2)
+            node_found.push(pop)
+          }
+        console.log( this.popups.length, node_found.length)
+        if (node_found.length > 0) {
+          d3.selectAll(".popup-feat").remove()
+          d3.select("#popup")
+          .append('p')
+            .style("position", "absolute")
+            .attr("class", "bg-light text-black popup-feat")
+            .attr("visibility", "visible")
+            .style("top", e.pageY + "px")
+            .style("left", e.pageX + "px")
+            .text(node_found[0].tip);
+        } else {
+          d3.selectAll(".popup-feat").remove()
+        }
+      })
   }
 
   svgNodesMapping(data: any): void {
