@@ -1,0 +1,89 @@
+<div class="container-fluid" >
+
+  <div class="row justify-content-center">
+    <div class="col-auto text-center">
+      <h4 id="map-title" class="font-weight-bold">GTFS Viewer</h4>
+    </div>
+  </div>
+
+  <div class="row legend-container justify-content-between">
+
+    <div class="col-8 mt-auto">
+      <button class="btn btn-dark mr-2" type="button" checked autocomplete="off" (click)="showHideLegend()">
+        <fa-icon class="" [icon]="tagIcon"></fa-icon>
+        Légende
+      </button>
+      <button class="btn btn-warning mr-2" title="Centrer" type="button" checked autocomplete="off" (click)="zoomOnData()">
+        <fa-icon class="" [icon]="centerIcon"></fa-icon>
+      </button>
+    </div>
+
+    <div class="col-4 my-auto">
+      <div class="map-sources row justify-content-end">
+
+        <div class="col-12">
+          <div id="attribution" class="float-right"></div>
+        </div>
+
+        <div class="col-12">
+          <div id="legend-scale" class="float-right"></div>
+        </div>
+
+      </div>
+    </div>
+
+
+
+    <div class="col-lg-12 legend-content">
+
+      <div class="row justify-content-center">
+
+        <div class="col-lg-5">
+
+          <div class="row py-3 mt-auto justify-content-center">
+            <div class="col-4 col-lg-4">
+
+              <h6>GTFS</h6>
+              <div class="col-lg-12">
+
+                <div id="area-selector" class="dropdown">
+                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {{ currentData }}
+                  </button>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" *ngFor="let data of available_data" (click)="updateTimeline(data)">{{ data }}</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-8 col-lg-8">
+
+              <h6>Modes de transport</h6>
+              <div class="col-lg-12">
+                <p>[TODO]</p>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="col-lg-7">
+          <app-time-legend
+            [currentData]="currentData"
+          ></app-time-legend>
+        </div>
+
+
+      </div>
+
+    </div>
+
+
+
+  </div>
+</div>
+
+
+
