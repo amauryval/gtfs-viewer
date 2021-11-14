@@ -59,6 +59,13 @@ export class MapViewComponent implements OnInit, OnDestroy {
   circleStroke = 'ghostwhite';
   circleWidth = '1px';
 
+  mappingColors: Record<string, string> = {
+    '0': 'red',
+    '1': 'blue',
+    '2': 'brown'
+  }
+  defaultColor = 'brown';
+
   mapContainerSubscription!: Subscription;
   pullGeoDataToMapSubscription!: Subscription;
   pullTripsGeoDataToMapSubscription!: Subscription;
@@ -77,7 +84,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
       (element: any) => {
         this.mapContainer = element;
 
-        // this.initnodesSvgLayer();
+        this.initnodesSvgLayer();
         this.initCircleCanvasLayer();
 
         // to add scale
@@ -101,7 +108,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
         divScale.appendChild(scaleLeaflet.getContainer())
         divAttribution.appendChild(AttributionLeaflet.getContainer())
 
-
       }
     );
 
@@ -109,9 +115,14 @@ export class MapViewComponent implements OnInit, OnDestroy {
       (geoFeaturesData: any[]) => {
 
         this.geoFeaturesData = geoFeaturesData;
-        this.circlesMapping(this.geoFeaturesData);
-
-        // this.svgNodesMapping(geoFeaturesData);
+        console.log(this.mapContainer.getZoom())
+        if (this.mapContainer.getZoom() <= 8) {
+          this.clearSvgNodesMapping();
+          this.canvasNodesMapping(this.geoFeaturesData);
+        } else {
+          this.clearCanvasNodesMapping()
+          this.svgNodesMapping(geoFeaturesData);
+        }
       }
     );
 
@@ -121,11 +132,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
         this.zoomFromDataBounds(this.dataBoundingBox);
       }
     );
-
-
-
-
-
   }
 
   ngOnInit(): void {
@@ -134,8 +140,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
     this.innerHeight = window.innerHeight;
 
   }
-
-
 
   ngOnDestroy(): void {
     this.mapContainerSubscription.unsubscribe();
@@ -185,8 +189,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
     svgLayerObject.select('g')
       .attr('class', 'leaflet-zoom-hide')
       .attr('id', 'nodes-container');
-
-
   }
 
   initCircleCanvasLayer(): void {
@@ -196,14 +198,9 @@ export class MapViewComponent implements OnInit, OnDestroy {
     d3.select('canvas:not(#tooltips)').attr('id', 'stop_nodes')
     this.canvas = document.querySelector('#stop_nodes');
     this.context = this.canvas.getContext('2d')
-
-
-    // this.tooltipCanvas = document.querySelector('#tooltips');
-    // this.tooltipContext = this.tooltipCanvas.getContext('2d')
-
   }
 
-  circlesMapping(data: any): void {
+  clearCanvasNodesMapping(): void {
     // https://stackoverflow.com/questions/2142535/how-to-clear-the-canvas-for-redrawing
 
     // IN ORDER TO CLEAN THE CANVAS
@@ -214,12 +211,14 @@ export class MapViewComponent implements OnInit, OnDestroy {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     // Restore the transform
     this.context.restore();
+  }
 
-    this.popups = [];
+  canvasNodesMapping(data: any): void {
+
+    this.clearCanvasNodesMapping()
 
     let i!: number
     for (i = 0; i < data.length; i++) {
-
 
       this.context.beginPath();
 
@@ -232,71 +231,24 @@ export class MapViewComponent implements OnInit, OnDestroy {
         this.radius, 0, this.pi2
       );
 
-      if (data[i].route_type == '1') {
-        this.context.fillStyle = 'blue';
-      } else if (data[i].route_type == '0') {
-        this.context.fillStyle = 'red';
-      } else if (data[i].route_type == '2') {
-        this.context.fillStyle = 'brown';
-      } else {
-        this.context.fillStyle = 'black';
-      }
+      this.context.fillStyle = this.mappingColors[data[i].route_type]
       this.context.fill();
+      this.context.lineWidth = 1;
+      this.context.strokeStyle="white";
+      this.context.stroke();
       this.context.closePath();
-
-      this.popups.push({
-        x: coords.x,
-        y: coords.y,
-        r: 4,
-        rXr: 16,
-        route_type: data[i].route_type,
-        tip: data[i]['route_long_name'],
-        tooltipRadius2: 100
-      });
-
     }
-    this.initPopups()
-
   }
 
-  initPopups(): void {
-    d3.select('#stop_nodes').on('mousemove', null)
-
-    d3.select('#stop_nodes')
-      .on('mousemove', (e: any, d: any) => {
-
-        let mouseX = parseInt(e.x);
-        let mouseY = parseInt(e.y);
-
-        let node_found = [];
-        for (var i = 0; i < this.popups.length; i++) {
-          const pop = this.popups[i];
-          let dx = mouseX - pop.x;
-          let dy = mouseY - pop.y;
-          if (dx * dx + dy * dy < pop.tooltipRadius2)
-            node_found.push(pop)
-          }
-        console.log( this.popups.length, node_found.length)
-        if (node_found.length > 0) {
-          d3.selectAll(".popup-feat").remove()
-          d3.select("#popup")
-          .append('p')
-            .style("position", "absolute")
-            .attr("class", "bg-light text-black popup-feat")
-            .attr("visibility", "visible")
-            .style("top", e.pageY + "px")
-            .style("left", e.pageX + "px")
-            .text(node_found[0].tip);
-        } else {
-          d3.selectAll(".popup-feat").remove()
-        }
-      })
+  clearSvgNodesMapping(): void {
+    // remove existing nodes
+    d3.selectAll('#nodes-container a').remove()
   }
 
   svgNodesMapping(data: any): void {
 
     // remove existing nodes
-    d3.selectAll('#nodes-container a').remove()
+    this.clearSvgNodesMapping()
 
     const group: any = d3.select('#nodes-container');
     const jobs = group.selectAll('.node')
@@ -306,52 +258,46 @@ export class MapViewComponent implements OnInit, OnDestroy {
       .enter()
       .append('a') // add hyper link and the svg circle
       .attr('xlink:href', (d: any) => '#/resume#' + d.id)
-      .attr('id', (d: any) => 'node_location_' + d.id)
       .append('circle')
-      .style('opacity', this.circleOpacity)
+      .style('opacity', 1)
       .style('stroke', this.circleStroke)
-      .style('fill', function(d: any) {
-        // if (d.properties.stop_type == 'metro' && d.properties.direction_id == "back") {
-        //   return 'blue'
-        // } else if (d.properties.stop_type == 'metro' && d.properties.direction_id == "forth") {
-        //   return 'teal'
-        // }
-        // else if (d.properties.stop_type == 'tramway' && d.properties.direction_id == "back") {
-        //   return 'red'
-        // } else if (d.properties.stop_type == 'tramway' && d.properties.direction_id == "forth") {
-        //   return 'orange'
-        // }
-        // else {
-        //   return 'black'
-        // }
-
-        if (d.route_short_name == 'A') {
-          return 'blue'
-        } else if (d.route_short_name == 'B') {
-          return 'teal'
-        }
-        else if (d.route_short_name == 'T1') {
-          return 'red'
-        } else if (d.route_short_name == 'T2') {
-          return 'orange'
-        }
-        else {
-          return 'red'
-        }
+      .style('fill', (d: any) => {
+        return this.mappingColors[d.route_type]
       })
-      .style('r', '3')
+      .style('r', '4')
       .style('stroke-width', this.circleWidth)
-      .on('mouseover', (e: any, d: any) => {})
+      .on('mouseover', (e: any, d: any) => {
+        d3.select('html').append('div').attr('id', 'popup-stop')
+
+        d3.select('#popup-stop')
+          .attr('class', 'text-black bg-white border rounded shadow')
+          .style('position', 'absolute')
+          .style('visibility', 'visible')
+          .style('width', '100px')
+          .style('height', '100px')
+          .style('left', () => {
+            if (e.x + this.popupWidth + 20 > this.innerWidth) {
+              return e.x - this.popupWidth - 15 + 'px';
+            } else {
+              return e.x + 15 + 'px';
+            }
+          })
+          .style('top', () => {
+            if (e.y + this.popupHeight + 20 > this.innerHeight) {
+              return e.y - this.popupHeight - 15 + 'px';
+            } else {
+              return e.y + 15 + 'px';
+            }
+          })
+          .text(d.route_long_name);
+      })
       .on('mousemove', (e: any, d: any) => {})
       .on('mouseout', (e: any, d: any) => {
-
+        d3.select('#popup-stop').remove()
       });
-
 
     jobs
       .exit()
-      // .transition()
-      // .attr('r', 0)
       .remove();
 
     this.mapContainer.on('moveend', this.reset.bind(this));
