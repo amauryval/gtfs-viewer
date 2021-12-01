@@ -26,7 +26,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
   tagIcon = tagsIcon;
   centerIcon = centerIcon;
 
-  available_data = ["ter", "toulouse"];
+  available_data = ["ter", "toulouse", "lyon"];
   currentData = this.available_data[0];
 
   currentDate!: number;
