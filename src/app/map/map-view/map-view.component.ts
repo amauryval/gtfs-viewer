@@ -154,7 +154,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
   }
 
   updateTimeline(data: string): void {
-    this.currentData = data.toLowerCase()
+    this.currentData = data
     this.mapService.pullRangeDateData(this.currentData);
   }
 

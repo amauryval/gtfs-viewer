@@ -48,7 +48,7 @@ export class MapService {
   }
 
   pullGeoData(currentData: string, current_date: string, bounds: number[]): void {
-    this.http.get<any>(this.apiUrlData + currentData + '/moving_nodes_by_date?current_date=' + current_date + "&bounds=" + bounds).subscribe({
+    this.http.get<any>(this.apiUrlData + currentData.toLowerCase() + '/moving_nodes_by_date?current_date=' + current_date + "&bounds=" + bounds).subscribe({
       complete: () => {
       },
       error: error => {
@@ -63,7 +63,7 @@ export class MapService {
 
   pullRangeDateData(currentData: string): void {
     // HERE ADD CURRENT DATE ARG LINKED TO THE timeline !!!!
-    this.http.get<any>(this.apiUrlData + currentData + '/range_dates').subscribe({
+    this.http.get<any>(this.apiUrlData + currentData.toLowerCase() + '/range_dates').subscribe({
       complete: () => {
       },
       error: error => {
