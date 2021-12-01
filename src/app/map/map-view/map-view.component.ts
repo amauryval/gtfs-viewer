@@ -26,7 +26,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
   tagIcon = tagsIcon;
   centerIcon = centerIcon;
 
-  available_data = ["ter", "toulouse", "lyon"];
+  available_data = ["TER", "Toulouse", "Lyon"];
   currentData = this.available_data[0];
 
   currentDate!: number;
@@ -154,7 +154,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
   }
 
   updateTimeline(data: string): void {
-    this.currentData = data
+    this.currentData = data.toLowerCase()
     this.mapService.pullRangeDateData(this.currentData);
   }
 

@@ -46,14 +46,12 @@
               <h6>GTFS</h6>
               <div class="col-lg-12">
 
-                <div id="area-selector" class="dropdown">
-                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    {{ currentData }}
-                  </button>
-                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="dropdown-item" *ngFor="let data of available_data" (click)="updateTimeline(data)">{{ data }}</a>
-                  </div>
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                  <label class="btn btn-secondary" *ngFor="let data of available_data">
+                    <input type="radio" name="options" id="option1" autocomplete="off" (click)="updateTimeline(data)"> {{ data }}
+                  </label>
                 </div>
+
               </div>
             </div>
 
