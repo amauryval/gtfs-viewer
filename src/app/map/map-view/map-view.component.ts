@@ -51,8 +51,8 @@ export class MapViewComponent implements OnInit, OnDestroy {
   popups: any[] = [];
 
   // check css code related to popup
-  popupWidth = 330;
-  popupHeight = 190;
+  popupWidth = 100;
+  popupHeight = 100;
   geoFeaturesData!: any[];
   svgLayerId = 'svgLayer';
   circleOpacity = 0.7;
@@ -136,8 +136,8 @@ export class MapViewComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.zoomInitDone = false;
-    this.innerWidth = window.innerWidth;
-    this.innerHeight = window.innerHeight;
+    this.innerWidth = window.screen.width;
+    this.innerHeight = window.screen.height;
 
   }
 
@@ -260,21 +260,22 @@ export class MapViewComponent implements OnInit, OnDestroy {
       .attr('xlink:href', (d: any) => '#/resume#' + d.id)
       .append('circle')
       .style('opacity', 1)
-      .style('stroke', this.circleStroke)
-      .style('fill', (d: any) => {
+      .attr('stroke', this.circleStroke)
+      .attr('fill', (d: any) => {
         return this.mappingColors[d.route_type]
       })
-      .style('r', '4')
-      .style('stroke-width', this.circleWidth)
+      .attr('r', '4')
+      .attr('stroke-width', this.circleWidth)
       .on('mouseover', (e: any, d: any) => {
-        d3.select('html').append('div').attr('id', 'popup-stop')
+        d3.select('html').append('div')
+          .attr('id', 'popup-stop')
+          .style('width', this.popupWidth + 'px')
 
         d3.select('#popup-stop')
           .attr('class', 'text-black bg-white border rounded shadow')
           .style('position', 'absolute')
           .style('visibility', 'visible')
-          .style('width', '100px')
-          .style('height', '100px')
+          // .style('height', '100px')
           .style('left', () => {
             if (e.x + this.popupWidth + 20 > this.innerWidth) {
               return e.x - this.popupWidth - 15 + 'px';
