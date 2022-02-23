@@ -9,7 +9,7 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "heroku_deploy": "ng build --prod --base-href=/gtfs-viewer/",
-    "do_deploy": "ng build --prod --base-href=/gtfs-viewer/",
+    "do_deploy": "ng build --prod --base-href=./",
     "start_on_local_network": "ng serve --host 0.0.0.0"
   },
   "private": true,
